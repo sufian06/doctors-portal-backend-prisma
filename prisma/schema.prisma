@@ -11,18 +11,19 @@ datasource db {
 }
 
 model Doctor {
-  id               String         @id @default(uuid())
-  fullName         String         @map("full_name")
-  email            String         @unique
-  phoneNumber      String         @unique @map("phone_number")
-  role             String         @default("doctor")
+  id               String            @id @default(uuid())
+  fullName         String            @map("full_name")
+  email            String            @unique
+  phoneNumber      String            @unique @map("phone_number")
+  role             String            @default("doctor")
   qualification    String
-  specializationId String         @map("specialization_id")
-  specialization   Specialization @relation(fields: [specializationId], references: [id])
+  specializationId String            @map("specialization_id")
+  specialization   Specialization    @relation(fields: [specializationId], references: [id])
   password         String
-  isPasswordReset  Boolean        @default(false) @map("is_password_reset")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
+  isPasswordReset  Boolean           @default(false) @map("is_password_reset")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  availabilities   AvailableDoctor[]
 
   @@map("doctors")
 }
@@ -33,20 +34,22 @@ model Specialization {
   description String?
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  Doctor      Doctor[]
+  doctors     Doctor[]
 
   @@map("specializations")
 }
 
 model Patient {
-  id          String   @id @default(uuid())
-  fullName    String   @map("full_name")
-  email       String   @unique
-  phoneNumber String   @unique @map("phone_number")
-  password    String
-  role        String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String          @id @default(uuid())
+  fullName       String          @map("full_name")
+  email          String          @unique
+  phoneNumber    String          @unique @map("phone_number")
+  password       String
+  role           String
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  medicalProfile MedicalProfile?
+  appointments   Appointment[]
 
   @@map("patients")
 }
@@ -63,6 +66,9 @@ model MedicalProfile {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  patientId String  @unique @map("patient_id")
+  patient   Patient @relation(fields: [patientId], references: [id])
+
   @@map("medical_history")
 }
 
@@ -73,44 +79,73 @@ model Appointment {
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
+  patientId String   @map("patient_id")
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  payment   Payment?
+
+  availableServiceId String           @map("available_service_id")
+  availableService   AvailableService @relation(fields: [availableServiceId], references: [id])
+
   @@map("appointments")
 }
 
 model AvailableDoctor {
-  id            String   @id @default(uuid())
-  availableDate DateTime @map("available_date")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id                String             @id @default(uuid())
+  availableDate     DateTime           @map("available_date")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  availableServices AvailableService[]
 
+  slotId String    @map("slot_id")
+  slot   TimeSlots @relation(fields: [slotId], references: [id])
+
+  doctorId String @map("doctor_id")
+  doctor   Doctor @relation(fields: [doctorId], references: [id])
+
+  @@unique([doctorId, slotId, availableDate])
   @@map("available_doctors")
 }
 
 model AvailableService {
-  id              String   @id @default(uuid())
-  slotDate        DateTime @map("slot_date")
-  availableStatus String   @map("available_status")
-  isBooked        Boolean  @map("is_booked")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id              String        @id @default(uuid())
+  slotDate        DateTime      @map("slot_date")
+  availableStatus String        @map("available_status")
+  isBooked        Boolean       @map("is_booked")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  appointments    Appointment[]
 
+  availableDoctorId String          @map("available_doctor_id")
+  availableDoctor   AvailableDoctor @relation(fields: [availableDoctorId], references: [id])
+
+  slotId String    @map("slot_id")
+  slot   TimeSlots @relation(fields: [slotId], references: [id])
+
+  serviceID String  @map("service_id")
+  service   Service @relation(fields: [serviceID], references: [id])
+
+  @@unique([slotId, availableDoctorId, slotDate, serviceID])
   @@map("available_services")
 }
 
 model Service {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id                String             @id @default(uuid())
+  name              String             @unique
+  description       String?
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  availableServices AvailableService[]
 
   @@map("Services")
 }
 
 model TimeSlots {
-  id        String   @id @default(uuid())
-  startTime DateTime @map("start_time")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String             @id @default(uuid())
+  startTime         DateTime           @map("start_time")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  availableServices AvailableService[]
+  availableDoctors  AvailableDoctor[]
 
   @@map("time_slots")
 }
@@ -122,6 +157,9 @@ model Payment {
   paymentStatus String   @map("payment_status")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
+
+  appointmentId String      @unique @map("appointment_id")
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
 
   @@map("payment")
 }
