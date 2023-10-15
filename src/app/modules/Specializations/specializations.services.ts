@@ -1,26 +1,33 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Specialization } from '@prisma/client'
 import prisma from '../../shared/prisma'
 
 const createSpecialization = async (
-  data: Specialization,
+  specialization: Specialization,
 ): Promise<Specialization> => {
   const result = await prisma.specialization.create({
-    data,
+    data: specialization,
   })
-
   return result
 }
 
-const getSpecializations = async (): Promise<Specialization[]> => {
+const getAllSpecializations = async (): Promise<Specialization[] | any> => {
   const result = await prisma.specialization.findMany()
-  return result
+  const total = await prisma.specialization.count()
+  return {
+    meta: {
+      total,
+    },
+    data: result,
+  }
 }
-const getSpecialization = async (
+
+const getSingleSpecialization = async (
   id: string,
 ): Promise<Specialization | null> => {
   const result = await prisma.specialization.findUnique({
     where: {
-      id,
+      id: id,
     },
   })
   return result
@@ -28,33 +35,30 @@ const getSpecialization = async (
 
 const updateSpecialization = async (
   id: string,
-  payload: Partial<Specialization>,
-): Promise<Partial<Specialization>> => {
+  specialization: Specialization,
+): Promise<Specialization> => {
   const result = await prisma.specialization.update({
     where: {
-      id,
+      id: id,
     },
-    data: payload,
+    data: specialization,
   })
-
   return result
 }
 
-const deleteSpecialization = async (
-  id: string,
-) => {
+const deleteSpecialization = async (id: string): Promise<Specialization> => {
   const result = await prisma.specialization.delete({
     where: {
-      id,
+      id: id,
     },
   })
   return result
 }
 
-export const specializationService = {
+export const specializationServices = {
   createSpecialization,
-  getSpecializations,
-  getSpecialization,
+  getAllSpecializations,
+  getSingleSpecialization,
   updateSpecialization,
-  deleteSpecialization
+  deleteSpecialization,
 }

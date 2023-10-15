@@ -1,10 +1,11 @@
 import express from 'express'
-import { doctorController } from './doctor.controller'
+import { doctorController } from './Doctors.controller'
+
 const router = express.Router()
 
 router.post('/create-doctor', doctorController.createDoctor)
-router.get('/', doctorController.getDoctors)
-router.get('/:id', doctorController.getDoctor)
+router.get('/', doctorController.getAllDoctors)
+router.get('/:id', doctorController.getSingleDoctor)
 router.patch('/:id', doctorController.updateDoctor)
 router.delete('/:id', doctorController.deleteDoctor)
 

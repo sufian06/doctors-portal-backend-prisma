@@ -31,6 +31,9 @@ app.get('/', async (req: Request, res: Response, next: NextFunction) => {
     message: 'Welcome HTTP SERVER',
   })
 })
+app.get('/error', (req: Request, res: Response, next: NextFunction) => {
+  throw new Error('Demo Error')
+})
 
 app.use(globalErrorHandler)
 
